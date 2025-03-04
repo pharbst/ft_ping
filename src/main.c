@@ -9,6 +9,8 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <string.h>
+#include <errno.h>
 
 typedef struct s_stats {
 	char *target;
@@ -27,19 +29,10 @@ void close_socket(int action);
 void print_stats(t_stats stats);
 
 void sigint_handler(int signum) {
-	printf("INTERRUPT PING\n");
-	// print_stats();
-	close_socket(-1);
-	exit(signum + 0x80);
-}
-
-void close_socket(int action) {
-	static int sockfd;
-
-	if (action == -1)
-		close(sockfd);
-	else
-		sockfd = action;
+	// printf("INTERRUPT PING\n");
+	// // print_stats();
+	// close_socket(-1);
+	// exit(signum + 0x80);
 }
 
 void print_stats(t_stats stats) {
@@ -50,14 +43,24 @@ void print_stats(t_stats stats) {
 		stats.min, stats.avg, stats.max, stats.mdev);
 }
 
-
-
 int main() {
 	int sockfd;
 
 	if ((sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP)) == -1)
 		return (perror("socket creation failed\n"), 1);
-	close_socket(sockfd);
-	
+	struct icmphdr head;
+	// bezero(&head, sizeof(head));
+	head.type = ICMP_ECHO;
+	head.code = 0;
+	// head.checksum =
+	struct sockaddr_in addr;
+	inet_pton(AF_INET, "127.0.0.1", &addr);
+	ssize_t bytes =  sendto(sockfd, &head, sizeof(head), 0, (struct sockaddr*)&addr, sizeof(&addr));
+	printf("%li %s\n",bytes, strerror(errno));
+
+	struct iovec urmum;
+	struct msghdr urdad;
+	urdad.msg_iov = &urmum;
+	printf("ur dad is %ld thick\n", recvmsg(sockfd, &urdad, 0));
 	return 0;
 }
